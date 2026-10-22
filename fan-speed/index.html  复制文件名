@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TCL The Floor &amp; Ceiling | Fan Speed Adjusting</title>
+
+<style>
+
+:root {
+    --navy: #17345f;
+    --blue-gray: #637b98;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #eef6ff 100%
+    );
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    padding: 20px;
+}
+
+.logo {
+    width: 90px;
+    margin-bottom: 8px;
+}
+
+h1 {
+    color: var(--navy);
+    font-size: 34px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.video-title {
+    color: var(--blue-gray);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.video-box {
+    width: 90vw;
+    max-width: 850px;
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        padding: 15px;
+    }
+
+    .logo {
+        width: 75px;
+    }
+
+    h1 {
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
+
+    .video-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <img
+    class="logo"
+    src="../brand-logo.png"
+    >
+
+    <h1>
+        TCL The Floor &amp; Ceiling
+    </h1>
+
+    <div class="video-title">
+        Fan Speed Adjusting
+    </div>
+
+    <div class="video-box">
+
+        <video controls preload="auto" playsinline>
+            <source
+            src="fanspeed.mp4"
+            type="video/mp4"
+            >
+        </video>
+
+    </div>
+
+</div>
+
+</body>
+</html>
