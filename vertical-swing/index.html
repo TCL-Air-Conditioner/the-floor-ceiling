@@ -59,12 +59,80 @@ h1 {
     max-width: 850px;
     aspect-ratio: 16 / 9;
     margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    background: #081423;
 }
 
 video {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    display: block;
+}
+
+.preview-button {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: #081423;
+    cursor: pointer;
+}
+
+.preview-button img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.play-icon {
+    position: relative;
+    z-index: 1;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 4px;
+    border-radius: 50%;
+    background: rgba(23, 52, 95, 0.88);
+    color: #fff;
+    font-size: 31px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
+}
+
+.preview-button[hidden],
+.video-message[hidden] {
+    display: none;
+}
+
+.video-message {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    background: rgba(8, 20, 35, .9);
+    color: #fff;
+    font-size: 15px;
+    text-align: center;
+}
+
+.video-message a {
+    color: #afd8ff;
 }
 
 @media (max-width: 600px) {
@@ -85,6 +153,12 @@ video {
         font-size: 18px;
         margin-bottom: 12px;
     }
+
+    .play-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+    }
 }
 </style>
 </head>
@@ -92,18 +166,117 @@ video {
 <body>
 <div class="container">
 
-    <img class="logo" src="../brand-logo.png">
+    <img
+        class="logo"
+        src="../brand-logo.png"
+        alt="TCL Logo"
+    >
 
     <h1>TCL The Floor &amp; Ceiling</h1>
 
     <div class="video-title">Vertical Swing</div>
 
     <div class="video-box">
-        <video controls preload="auto" playsinline>
-            <source src="verticalswing.mp4" type="video/mp4">
-        </video>
-    </div>
 
+        <video
+            id="trainingVideo"
+            controls
+            preload="auto"
+            playsinline
+            webkit-playsinline
+        >
+            <source src="verticalswing.mp4" type="video/mp4">
+            Your browser does not support HTML video.
+        </video>
+
+        <button
+            class="preview-button"
+            id="previewButton"
+            type="button"
+            aria-label="Play Vertical Swing video"
+        >
+            <img
+                src="preview-vertical-swing.jpg"
+                alt="Vertical Swing video preview"
+            >
+            <span class="play-icon" aria-hidden="true">&#9654;</span>
+        </button>
+
+        <div
+            class="video-message"
+            id="videoMessage"
+            role="status"
+            aria-live="polite"
+            hidden
+        >
+            <span id="messageText">Loading video...</span>
+            <a
+                id="directVideoLink"
+                href="verticalswing.mp4"
+                target="_blank"
+                rel="noopener"
+                hidden
+            >Open MP4 directly</a>
+        </div>
+
+    </div>
 </div>
+
+<script>
+(function () {
+    const video = document.getElementById('trainingVideo');
+    const button = document.getElementById('previewButton');
+    const message = document.getElementById('videoMessage');
+    const messageText = document.getElementById('messageText');
+    const directLink = document.getElementById('directVideoLink');
+
+    function showLoading() {
+        messageText.textContent = 'Loading video...';
+        directLink.hidden = true;
+        message.hidden = false;
+    }
+
+    function showError(detail) {
+        messageText.textContent = detail;
+        directLink.hidden = false;
+        message.hidden = false;
+    }
+
+    button.addEventListener('click', function () {
+        // Hide the preview and start the actual MP4.
+        button.hidden = true;
+        showLoading();
+
+        try {
+            const playRequest = video.play();
+
+            if (playRequest && typeof playRequest.catch === 'function') {
+                playRequest.catch(function (error) {
+                    showError(
+                        'Playback failed: ' +
+                        (error.message || error.name) +
+                        '. Please check the MP4 file.'
+                    );
+                });
+            }
+        } catch (error) {
+            showError('Unable to start video playback.');
+        }
+    });
+
+    video.addEventListener('playing', function () {
+        message.hidden = true;
+    });
+
+    video.addEventListener('error', function () {
+        if (button.hidden) {
+            showError(
+                'Video failed to load. Check the MP4 filename, upload path, network, or format.'
+            );
+        }
+    });
+})();
+</script>
+
 </body>
 </html>
