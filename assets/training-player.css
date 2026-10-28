@@ -1,0 +1,123 @@
+.player-status-slot,
+.video-directory {
+    width: 90vw;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.player-status-slot {
+    min-height: 66px;
+    padding-top: 12px;
+}
+
+.player-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px;
+    border: 1px solid #d7e3ef;
+    background: #f3f8fd;
+    color: #17345f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.player-status[hidden],
+.player-status [hidden] {
+    display: none;
+}
+
+.player-status button {
+    padding: 8px 14px;
+    border: 1px solid #17345f;
+    border-radius: 0;
+    background: #17345f;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+.player-status a {
+    color: #17345f;
+    text-underline-offset: 3px;
+}
+
+.video-directory {
+    padding: 12px 0 8px;
+    text-align: left;
+}
+
+.video-directory h2 {
+    margin: 0 0 12px;
+    color: #17345f;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.video-directory ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.video-directory li {
+    min-width: 0;
+}
+
+.video-directory a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+    height: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid #d7e3ef;
+    background: #fff;
+    color: #17345f;
+    font-size: 15px;
+    line-height: 1.45;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.video-directory a:hover,
+.video-directory a[aria-current="page"] {
+    border-color: #17345f;
+    background: #eaf3fc;
+}
+
+.video-directory a[aria-current="page"] {
+    font-weight: 600;
+}
+
+.video-directory .current-video-label {
+    color: #486580;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.player-status button:focus-visible,
+.player-status a:focus-visible,
+.video-directory a:focus-visible,
+video:focus-visible {
+    outline: 3px solid #1575c7;
+    outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+    .video-directory h2 { font-size: 17px; }
+    .video-directory a { padding: 11px 12px; font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+    .video-directory ul { grid-template-columns: 1fr; }
+}

@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>TCL The Floor &amp; Ceiling | Eco Mode</title>
+<title>The Floor &amp; Ceiling | Eco Mode</title>
 
 <style>
 :root {
@@ -161,6 +161,7 @@ video {
     }
 }
 </style>
+<link rel="stylesheet" href="../assets/training-player.css">
 </head>
 
 <body>
@@ -172,7 +173,7 @@ video {
         alt="TCL Logo"
     >
 
-    <h1>TCL The Floor &amp; Ceiling</h1>
+    <h1>The Floor &amp; Ceiling</h1>
 
     <div class="video-title">Eco Mode</div>
 
@@ -202,81 +203,35 @@ video {
             <span class="play-icon" aria-hidden="true">&#9654;</span>
         </button>
 
-        <div
-            class="video-message"
-            id="videoMessage"
-            role="status"
-            aria-live="polite"
-            hidden
-        >
-            <span id="messageText">Loading video...</span>
-            <a
-                id="directVideoLink"
-                href="ecomode.mp4"
-                target="_blank"
-                rel="noopener"
-                hidden
-            >Open MP4 directly</a>
-        </div>
-
     </div>
+
+    <div class="player-status-slot">
+        <div class="player-status" id="videoMessage" hidden>
+            <span id="messageText" role="status" aria-live="polite" aria-atomic="true"></span>
+            <button id="retryButton" type="button" hidden>Reload video</button>
+            <a id="directVideoLink" href="ecomode.mp4" target="_blank" rel="noopener" hidden>Open MP4 directly</a>
+        </div>
+    </div>
+
+    <nav class="video-directory" aria-label="Product video directory">
+        <h2>Operation Videos</h2>
+        <ul>
+            <li><a href="../fan-speed/"><span>Fan Speed Adjusting</span></a></li>
+            <li><a href="../vertical-swing/"><span>Vertical Swing</span></a></li>
+            <li><a href="../eco-mode/" aria-current="page"><span>Eco Mode</span><span class="current-video-label">Now playing</span></a></li>
+            <li><a href="../mode-switch/"><span>Mode Switch</span></a></li>
+            <li><a href="../horizontal-swing/"><span>Horizontal Swing</span></a></li>
+            <li><a href="../app-connect/"><span>APP Connection</span></a></li>
+            <li><a href="../filter-installation/"><span>Filter Installation</span></a></li>
+            <li><a href="../filter-removal/"><span>Filter Removal</span></a></li>
+        </ul>
+    </nav>
+
 </div>
 
-<script>
-(function () {
-    const video = document.getElementById('trainingVideo');
-    const button = document.getElementById('previewButton');
-    const message = document.getElementById('videoMessage');
-    const messageText = document.getElementById('messageText');
-    const directLink = document.getElementById('directVideoLink');
 
-    function showLoading() {
-        messageText.textContent = 'Loading video...';
-        directLink.hidden = true;
-        message.hidden = false;
-    }
 
-    function showError(detail) {
-        messageText.textContent = detail;
-        directLink.hidden = false;
-        message.hidden = false;
-    }
-
-    button.addEventListener('click', function () {
-        // Hide the preview and start the actual MP4.
-        button.hidden = true;
-        showLoading();
-
-        try {
-            const playRequest = video.play();
-
-            if (playRequest && typeof playRequest.catch === 'function') {
-                playRequest.catch(function (error) {
-                    showError(
-                        'Playback failed: ' +
-                        (error.message || error.name) +
-                        '. Please check the MP4 file.'
-                    );
-                });
-            }
-        } catch (error) {
-            showError('Unable to start video playback.');
-        }
-    });
-
-    video.addEventListener('playing', function () {
-        message.hidden = true;
-    });
-
-    video.addEventListener('error', function () {
-        if (button.hidden) {
-            showError(
-                'Video failed to load. Check the MP4 filename, upload path, network, or format.'
-            );
-        }
-    });
-})();
-</script>
-
+<script src="../assets/training-player.js" defer></script>
 </body>
 </html>
+
