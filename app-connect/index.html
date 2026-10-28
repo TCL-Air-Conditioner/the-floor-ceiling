@@ -161,6 +161,132 @@ video {
     }
 }
 </style>
+<style>
+.player-status-slot,
+.video-directory {
+    width: 90vw;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.player-status-slot {
+    min-height: 66px;
+    padding-top: 12px;
+}
+
+.player-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px;
+    border: 1px solid #d7e3ef;
+    background: #f3f8fd;
+    color: #17345f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.player-status[hidden],
+.player-status [hidden] {
+    display: none;
+}
+
+.player-status button {
+    padding: 8px 14px;
+    border: 1px solid #17345f;
+    border-radius: 0;
+    background: #17345f;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+.player-status a {
+    color: #17345f;
+    text-underline-offset: 3px;
+}
+
+.video-directory {
+    padding: 12px 0 8px;
+    text-align: left;
+}
+
+.video-directory h2 {
+    margin: 0 0 12px;
+    color: #17345f;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.video-directory ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.video-directory li {
+    min-width: 0;
+}
+
+.video-directory a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+    height: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid #d7e3ef;
+    background: #fff;
+    color: #17345f;
+    font-size: 15px;
+    line-height: 1.45;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.video-directory a:hover,
+.video-directory a[aria-current="page"] {
+    border-color: #17345f;
+    background: #eaf3fc;
+}
+
+.video-directory a[aria-current="page"] {
+    font-weight: 600;
+}
+
+.video-directory .current-video-label {
+    color: #486580;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.player-status button:focus-visible,
+.player-status a:focus-visible,
+.video-directory a:focus-visible,
+video:focus-visible {
+    outline: 3px solid #1575c7;
+    outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+    .video-directory h2 { font-size: 17px; }
+    .video-directory a { padding: 11px 12px; font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+    .video-directory ul { grid-template-columns: 1fr; }
+}
+
+</style>
 </head>
 
 <body>
@@ -202,81 +328,218 @@ video {
             <span class="play-icon" aria-hidden="true">&#9654;</span>
         </button>
 
-        <div
-            class="video-message"
-            id="videoMessage"
-            role="status"
-            aria-live="polite"
-            hidden
-        >
-            <span id="messageText">Loading video...</span>
-            <a
-                id="directVideoLink"
-                href="app-connect.mp4"
-                target="_blank"
-                rel="noopener"
-                hidden
-            >Open MP4 directly</a>
-        </div>
-
     </div>
+
+    <div class="player-status-slot">
+        <div class="player-status" id="videoMessage" hidden>
+            <span id="messageText" role="status" aria-live="polite" aria-atomic="true"></span>
+            <button id="retryButton" type="button" hidden>Reload video</button>
+            <a id="directVideoLink" href="app-connect.mp4" target="_blank" rel="noopener" hidden>Open MP4 directly</a>
+        </div>
+    </div>
+
+    <nav class="video-directory" aria-label="Product video directory">
+        <h2>Operation Videos</h2>
+        <ul>
+            <li><a href="../fan-speed/"><span>Fan Speed Adjusting</span></a></li>
+            <li><a href="../vertical-swing/"><span>Vertical Swing</span></a></li>
+            <li><a href="../eco-mode/"><span>Eco Mode</span></a></li>
+            <li><a href="../mode-switch/"><span>Mode Switch</span></a></li>
+            <li><a href="../horizontal-swing/"><span>Horizontal Swing</span></a></li>
+            <li><a href="../app-connect/" aria-current="page"><span>APP Connection</span><span class="current-video-label">Now playing</span></a></li>
+            <li><a href="../filter-installation/"><span>Filter Installation</span></a></li>
+            <li><a href="../filter-removal/"><span>Filter Removal</span></a></li>
+        </ul>
+    </nav>
+
 </div>
+
+
 
 <script>
 (function () {
+    'use strict';
+
     const video = document.getElementById('trainingVideo');
-    const button = document.getElementById('previewButton');
-    const message = document.getElementById('videoMessage');
-    const messageText = document.getElementById('messageText');
+    const preview = document.getElementById('previewButton');
+    const status = document.getElementById('videoMessage');
+    const statusText = document.getElementById('messageText');
+    const retry = document.getElementById('retryButton');
     const directLink = document.getElementById('directVideoLink');
+    if (!video || !preview || !status || !statusText || !retry || !directLink) return;
 
-    function showLoading() {
-        messageText.textContent = 'Loading video...';
+    let requested = false;
+    let hasPlayed = false;
+    let phase = 'idle';
+    let generation = 0;
+    let pendingPlay = false;
+    let savedPosition = null;
+    let waitTimer = null;
+
+    video.tabIndex = 0;
+
+    function clearWaitTimer() {
+        if (waitTimer !== null) clearTimeout(waitTimer);
+        waitTimer = null;
+    }
+
+    function hideStatus() {
+        clearWaitTimer();
+        if (document.activeElement === retry || document.activeElement === directLink) focusVideo();
+        status.hidden = true;
+        retry.hidden = true;
         directLink.hidden = true;
-        message.hidden = false;
     }
 
-    function showError(detail) {
-        messageText.textContent = detail;
+    function showWaiting(nextPhase) {
+        // Repeated waiting/stalled events must not restart the recovery timer.
+        if (phase === nextPhase && !status.hidden) return;
+        clearWaitTimer();
+        phase = nextPhase;
+        statusText.textContent = nextPhase === 'buffering'
+            ? 'Buffering video...'
+            : 'Loading video...';
+        retry.hidden = true;
+        directLink.hidden = true;
+        status.hidden = false;
+        waitTimer = setTimeout(function () {
+            waitTimer = null;
+            if (requested && !video.ended && (pendingPlay || !video.paused) &&
+                (phase === 'loading' || phase === 'buffering')) {
+                statusText.textContent = 'Taking longer than expected. You can reload the video.';
+                retry.hidden = false;
+                directLink.hidden = false;
+            }
+        }, 15000);
+    }
+
+    function showError() {
+        clearWaitTimer();
+        pendingPlay = false;
+        phase = 'error';
+        statusText.textContent = 'Unable to load this video. Please try again.';
+        retry.hidden = false;
         directLink.hidden = false;
-        message.hidden = false;
+        status.hidden = false;
     }
 
-    button.addEventListener('click', function () {
-        // Hide the preview and start the actual MP4.
-        button.hidden = true;
-        showLoading();
+    function finishPlaying() {
+        hasPlayed = true;
+        pendingPlay = false;
+        phase = 'playing';
+        preview.hidden = true;
+        hideStatus();
+    }
 
+    function focusVideo() {
+        try { video.focus({ preventScroll: true }); }
+        catch (error) { video.focus(); }
+    }
+
+    function startVideo() {
+        requested = true;
+        pendingPlay = true;
+        const attempt = ++generation;
+        preview.hidden = true;
+        showWaiting('loading');
+        focusVideo();
         try {
-            const playRequest = video.play();
-
-            if (playRequest && typeof playRequest.catch === 'function') {
-                playRequest.catch(function (error) {
-                    showError(
-                        'Playback failed: ' +
-                        (error.message || error.name) +
-                        '. Please check the MP4 file.'
-                    );
+            // Keep play() in the click handler so mobile browsers retain the
+            // user's playback permission, including when retrying a request.
+            const request = video.play();
+            if (request && typeof request.then === 'function') {
+                request.then(function () {
+                    if (attempt !== generation) return;
+                    pendingPlay = false;
+                    if (!video.paused && !video.seeking && video.readyState >= 3) finishPlaying();
+                }).catch(function () {
+                    if (attempt === generation) showError();
                 });
             }
         } catch (error) {
-            showError('Unable to start video playback.');
+            if (attempt === generation) showError();
+        }
+    }
+
+    preview.addEventListener('click', startVideo);
+
+    retry.addEventListener('click', function () {
+        // load() resets the media timeline. Restore it once metadata returns.
+        if (Number.isFinite(video.currentTime) && video.currentTime > 0) {
+            savedPosition = video.currentTime;
+        }
+        ++generation;
+        pendingPlay = false;
+        clearWaitTimer();
+        phase = 'idle';
+        video.load();
+        startVideo();
+    });
+
+    video.addEventListener('loadedmetadata', function () {
+        if (savedPosition === null) return;
+        const target = Number.isFinite(video.duration)
+            ? Math.min(savedPosition, Math.max(0, video.duration - 0.05))
+            : savedPosition;
+        savedPosition = null;
+        try { video.currentTime = target; }
+        catch (error) { /* A non-seekable video can still restart normally. */ }
+    });
+
+    video.addEventListener('play', function () {
+        requested = true;
+        if (video.readyState < 3) showWaiting(hasPlayed ? 'buffering' : 'loading');
+    });
+
+    video.addEventListener('playing', finishPlaying);
+
+    video.addEventListener('waiting', function () {
+        if (requested && !video.paused && !video.ended && phase !== 'error') {
+            showWaiting(hasPlayed ? 'buffering' : 'loading');
         }
     });
 
-    video.addEventListener('playing', function () {
-        message.hidden = true;
+    video.addEventListener('stalled', function () {
+        // A stalled preload request is harmless if the video has enough data.
+        if (requested && !video.paused && !video.ended && video.readyState < 3 && phase !== 'error') {
+            showWaiting(hasPlayed ? 'buffering' : 'loading');
+        }
+    });
+
+    video.addEventListener('pause', function () {
+        if (!video.paused || phase === 'error') return;
+        ++generation;
+        pendingPlay = false;
+        phase = 'paused';
+        hideStatus();
+    });
+
+    video.addEventListener('seeking', function () {
+        if (requested && !video.paused && phase !== 'error') showWaiting('buffering');
+    });
+
+    video.addEventListener('seeked', function () {
+        if (phase === 'error') return;
+        if (video.paused) hideStatus();
+        else if (video.readyState >= 3) finishPlaying();
+    });
+
+    video.addEventListener('ended', function () {
+        ++generation;
+        pendingPlay = false;
+        phase = 'ended';
+        hideStatus();
     });
 
     video.addEventListener('error', function () {
-        if (button.hidden) {
-            showError(
-                'Video failed to load. Check the MP4 filename, upload path, network, or format.'
-            );
+        if (requested) {
+            ++generation;
+            showError();
         }
     });
 })();
-</script>
 
+</script>
 </body>
 </html>
+
